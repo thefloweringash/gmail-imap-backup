@@ -6,10 +6,12 @@ UIDNEXT='UIDNEXT'
 
 DEBUG=false
 
+require 'time'
 require 'lockfile'
 require 'timeout'
 require 'net/imap'
 require 'yaml'
+require 'maildir'
 
 load File.dirname(__FILE__) + '/lib/oauth.rb'
 
@@ -39,7 +41,7 @@ module GmailBackup
   class IMAPBackup
     attr_reader :imap
     attr_reader :state_file, :local_uidvalidity, :local_uidnext
-    attr_reader :mailbox, :email, :command
+    attr_reader :mailbox, :email, :destination_root
 
     def initialize(config_file, state_file)
       @state_file = state_file
@@ -52,8 +54,8 @@ module GmailBackup
                                                config['access_token'],
                                                config['access_token_secret'])
       @mailbox = config['mailbox']
-      @command = config['command']
-      raise "No command" unless @command
+      @destination_root = config['destination_root']
+      raise "No destination" unless @destination_root
 
       if state_file.exists
         state = state_file.read
@@ -124,9 +126,11 @@ module GmailBackup
     private
 
     def fetch_and_store_message(uid)
-      imap.uid_fetch(uid, 'RFC822').each do |message|
-        IO.popen(command, 'w') { |f| f.print message.attr['RFC822'] }
-        $?.exitstatus == 0 or raise "Non-zero exit code: #{$?.inspect}"
+      dir = Maildir.new(File.join(destination_root, ".#{Date.today.to_s}"))
+      imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE']).each do |message|
+        internaldate = Time.parse(message.attr['INTERNALDATE'])
+        file = dir.add(message.attr['RFC822']).path
+        File.utime(File.atime(file), internaldate, file)
       end
     end
 
