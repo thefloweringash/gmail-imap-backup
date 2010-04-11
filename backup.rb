@@ -126,8 +126,8 @@ module GmailBackup
     private
 
     def fetch_and_store_message(uid)
-      dir = Maildir.new(File.join(destination_root, ".#{Date.today.to_s}"))
       imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE']).each do |message|
+        dir = Maildir.new(File.join(destination_root, ".#{Date.today.to_s}"))
         internaldate = Time.parse(message.attr['INTERNALDATE'])
         file = dir.add(message.attr['RFC822']).path
         File.utime(File.atime(file), internaldate, file)
