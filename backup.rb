@@ -13,7 +13,7 @@ require 'net/imap'
 require 'yaml'
 require 'maildir'
 
-load File.dirname(__FILE__) + '/lib/oauth.rb'
+load File.join(File.dirname(__FILE__), 'lib', 'oauth.rb')
 
 class YAMLFile
   attr_reader :filename
