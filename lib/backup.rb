@@ -89,8 +89,9 @@ module GmailBackup
                  puts "UIDVALIDITY mismatch, starting over" if DEBUG
                  imap.fetch(1 .. -1, "UID")
                elsif local_uidnext != remote_uidnext
-                 puts "Incremental update (#{local_uidnext}..#{remote_uidnext}" if DEBUG
-                 imap.uid_fetch(local_uidnext .. -1, "UID")
+                 puts "Incremental update (#{local_uidnext}:*)" if DEBUG
+                 imap.uid_fetch(local_uidnext .. -1, "UID").
+                   select { |x| x.attr['UID'].to_i >= local_uidnext }
                else
                  puts "No work" if DEBUG
                  []
