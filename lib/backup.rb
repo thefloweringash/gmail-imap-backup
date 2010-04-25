@@ -1,43 +1,21 @@
 #!/usr/bin/env ruby
 
-# typo protection
-UIDVALIDITY='UIDVALIDITY'
-UIDNEXT='UIDNEXT'
-
-DEBUG=false
-
 require 'time'
 require 'lockfile'
 require 'timeout'
 require 'net/imap'
-require 'yaml'
 require 'maildir'
 
-load File.join(File.dirname(__FILE__), 'lib', 'oauth.rb')
-
-class YAMLFile
-  attr_reader :filename
-
-  def initialize(filename)
-    @filename = filename
-  end
-
-  def read
-    File.open(filename) { |f| YAML.load(f) }
-  end
-
-  def write(o)
-    File.open(filename, "w") { |f| f.puts o.to_yaml }
-  end
-
-  def exists
-    File.exists? filename
-  end
-end
-
-# config
+require File.join(File.dirname(__FILE__), 'oauth.rb')
+require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 
 module GmailBackup
+  # typo protection
+  UIDVALIDITY='UIDVALIDITY'
+  UIDNEXT='UIDNEXT'
+
+  DEBUG=false
+
   class IMAPBackup
     attr_reader :imap
     attr_reader :state_file, :local_uidvalidity, :local_uidnext
@@ -71,14 +49,29 @@ module GmailBackup
       end
     end
 
-    def run
+    def connect
       @imap = Net::IMAP.new("imap.gmail.com", 993, true, "/etc/ssl/certs", true)
+      puts "Connected" if DEBUG
+    end
+
+    def authenticate
+      imap.authenticate('XOAUTH', email, consumer, access_token)
+      puts "Authenticated" if DEBUG
+    end
+
+    def cleanup
+      if imap
+        puts "Logging out" if DEBUG
+        Timeout::timeout(10) do
+          imap.logout
+        end
+      end
+    end
+
+    def run
       begin
-        puts "Connected" if DEBUG
-
-        imap.authenticate('XOAUTH', email, consumer, access_token)
-
-        puts "Authenticated" if DEBUG
+        connect
+        authenticate
 
         imap.examine(mailbox)
 
@@ -111,15 +104,8 @@ module GmailBackup
                            UIDVALIDITY => remote_uidvalidity,
                            UIDNEXT     => remote_uidnext
                          })
-
-      rescue => e
-        puts e.inspect
-        puts e.backtrace
-
-        puts "Error occured, logging out"
-        Timeout::timeout(10) do
-          imap.logout
-        end
+      ensure
+        cleanup
       end
     end
 
@@ -137,11 +123,4 @@ module GmailBackup
     attr_reader :access_token, :consumer
 
   end
-end
-
-Lockfile.new 'state.lock', :retries => 2 do
-  config_file = YAMLFile.new('config')
-  state_file = YAMLFile.new('state')
-
-  GmailBackup::IMAPBackup.new(config_file, state_file).run
 end
