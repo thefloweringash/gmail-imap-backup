@@ -14,7 +14,7 @@ module GmailBackup
   UIDVALIDITY='UIDVALIDITY'
   UIDNEXT='UIDNEXT'
 
-  DEBUG=false
+  DEBUG=true
 
   class IMAPBackup
     attr_reader :imap
@@ -128,6 +128,7 @@ module GmailBackup
     private
 
     def fetch_and_store_message(uid)
+      puts "Fetch and store: #{uid}" if DEBUG
       imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE']).each do |message|
         dir = Maildir.new(File.join(destination_root, ".#{Date.today.to_s}"))
         internaldate = Time.parse(message.attr['INTERNALDATE'])
