@@ -1,0 +1,4 @@
+= Installation =
+sudo gem install lockfile
+sudo gem install maildir
+sudo gem install oauth

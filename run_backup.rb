@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
 require File.join(File.dirname(__FILE__), 'lib', 'backup.rb')
 
 Lockfile.new 'state.lock', :retries => 2 do
