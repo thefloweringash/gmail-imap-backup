@@ -28,6 +28,21 @@ module GmailBackup
 
       @email = config['email']
       @consumer = GmailBackup::OAuth.consumer
+      
+      if config['access_token'] == ''
+        puts @consumer.to_yaml
+        
+        @request_token=@consumer.get_request_token( { :oauth_callback => "oob" }, {:scope => "https://mail.google.com/"} )
+        puts "Please go to: " + @request_token.authorize_url
+        
+        puts "Please enter the verification code provided:"
+        oauth_verifier = STDIN.gets.chomp
+        
+        @access_token=@request_token.get_access_token(:oauth_verifier => oauth_verifier)
+        puts "Add this to your config.yml:" + {'access_token'=>@access_token.token, 'access_token_secret'=>@access_token.secret}.to_yaml
+        
+        exit
+      end
       @access_token = ::OAuth::AccessToken.new(@consumer,
                                                config['access_token'],
                                                config['access_token_secret'])
