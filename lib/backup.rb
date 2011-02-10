@@ -137,12 +137,14 @@ module GmailBackup
               uidsleft.delete(x)
             end
           end
-        rescue Exception => e
-          puts "Apparently something went wrong or we took more than 60 seconds for one single message ..."
+        rescue   Exception
+          puts $!, *$@
+          puts "Apparently something went wrong or we took more than 300 seconds for one single message ..."
         end
 
         state_file.write({ UIDVALIDITY => remote_uidvalidity, UIDNEXT => remote_uidnext })
         todo_file.write({ UIDS => uidsleft })
+        puts "Wrote new status.yml and status.todo.yml" if DEBUG
       ensure
         cleanup
       end
