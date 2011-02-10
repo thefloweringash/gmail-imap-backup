@@ -13,6 +13,7 @@ module GmailBackup
   # typo protection
   UIDVALIDITY='UIDVALIDITY'
   UIDNEXT='UIDNEXT'
+  UIDS='UIDS'
 
   DEBUG=true
 
@@ -21,31 +22,32 @@ module GmailBackup
     attr_reader :state_file, :local_uidvalidity, :local_uidnext
     attr_reader :mailbox, :email, :destination_root
 
-    def initialize(config_file, state_file)
-      @state_file = state_file
+    attr_reader :todo_file, :todo_uids
 
-      config = config_file.read
+    def initialize(config, state_file, todo_file)
+      @state_file = state_file
+      @todo_file = todo_file
 
       @email = config['email']
       @consumer = GmailBackup::OAuth.consumer
-      
+
       if config['access_token'] == ''
         puts @consumer.to_yaml
-        
+
         @request_token=@consumer.get_request_token( { :oauth_callback => "oob" }, {:scope => "https://mail.google.com/"} )
         puts "Please go to: " + @request_token.authorize_url
-        
+
         puts "Please enter the verification code provided:"
         oauth_verifier = STDIN.gets.chomp
-        
+
         @access_token=@request_token.get_access_token(:oauth_verifier => oauth_verifier)
         puts "Add this to your config.yml:" + {'access_token'=>@access_token.token, 'access_token_secret'=>@access_token.secret}.to_yaml
-        
+
         exit
       end
       @access_token = ::OAuth::AccessToken.new(@consumer,
-                                               config['access_token'],
-                                               config['access_token_secret'])
+      config['access_token'],
+      config['access_token_secret'])
       @mailbox = config['mailbox']
       @destination_root = config['destination_root']
       raise "No destination" unless @destination_root
@@ -60,8 +62,17 @@ module GmailBackup
       end
 
       if local_uidvalidity and !local_uidnext
-        raise "Corrupted state, local_uidnext is missing"
+        raise "Corrupted state.yml, local_uidnext is missing"
       end
+
+      if todo_file.exists
+        todo = todo_file.read
+        @todo_uids = todo[UIDS]
+      else
+        @todo_uids = []
+      end
+      raise "state.todo.yml corrupted" unless @todo_uids
+
     end
 
     def connect
@@ -101,25 +112,37 @@ module GmailBackup
         end
 
         uids = if local_uidvalidity != remote_uidvalidity
-                 puts "UIDVALIDITY mismatch, starting over" if DEBUG
-                 imap.fetch(1 .. -1, "UID")
-               elsif local_uidnext != remote_uidnext
-                 puts "Incremental update (#{local_uidnext}:*)" if DEBUG
-                 imap.uid_fetch(local_uidnext .. -1, "UID").
-                   select { |x| x.attr['UID'].to_i >= local_uidnext }
-               else
-                 puts "No work" if DEBUG
-                 []
-               end.map { |x| x.attr['UID'].to_i }
+          puts "UIDVALIDITY mismatch, starting over" if DEBUG
+          todo_uids.clear
+          imap.fetch(1 .. -1, "UID")
+        elsif local_uidnext != remote_uidnext
+          puts "Incremental update (#{local_uidnext}:*)" if DEBUG
+          imap.uid_fetch(local_uidnext .. -1, "UID").
+          select { |x| x.attr['UID'].to_i >= local_uidnext }
+        else
+          puts "No new messages on server" if DEBUG
+          []
+        end.map { |x| x.attr['UID'].to_i }
 
         puts "Want to fetch: #{uids.inspect}" if DEBUG
+        puts "Old UIDs to fetch: #{todo_uids.inspect}" if DEBUG
+        uids = uids + todo_uids;
 
-        uids.each { |x| fetch_and_store_message(x) }
+        uidsleft = Array.new(uids)
 
-        state_file.write({
-                           UIDVALIDITY => remote_uidvalidity,
-                           UIDNEXT     => remote_uidnext
-                         })
+        begin
+          uids.each do |x| 
+            Timeout::timeout(60) do
+              fetch_and_store_message(x)
+              uidsleft.delete(x)
+            end
+          end
+        rescue Exception => e
+          puts "Apparently something went wrong or we took more than 60 seconds for one single message ..."
+        end
+
+        state_file.write({ UIDVALIDITY => remote_uidvalidity, UIDNEXT => remote_uidnext })
+        todo_file.write({ UIDS => uidsleft })
       ensure
         cleanup
       end

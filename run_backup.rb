@@ -3,9 +3,16 @@
 require 'rubygems'
 require File.join(File.dirname(__FILE__), 'lib', 'backup.rb')
 
-Lockfile.new 'state.lock', :retries => 2 do
-  config_file = GmailBackup::YAMLFile.new('config.yml')
-  state_file = GmailBackup::YAMLFile.new('state.yml')
+config_file = GmailBackup::YAMLFile.new('config.yml')
+config = config_file.read
 
-  GmailBackup::IMAPBackup.new(config_file, state_file).run
+destination_root = config['destination_root']
+raise "No destination" unless destination_root
+
+statepath = File.join(destination_root, 'state.')
+
+Lockfile.new statepath+'lock', :retries => 2 do
+  state_file = GmailBackup::YAMLFile.new(statepath+'yml')
+  todo_file = GmailBackup::YAMLFile.new(statepath+'todo.yml')
+  GmailBackup::IMAPBackup.new(config, state_file, todo_file).run
 end
