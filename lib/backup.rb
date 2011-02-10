@@ -132,7 +132,7 @@ module GmailBackup
 
         begin
           uids.each do |x| 
-            Timeout::timeout(60) do
+            Timeout::timeout(300) do
               fetch_and_store_message(x)
               uidsleft.delete(x)
             end
