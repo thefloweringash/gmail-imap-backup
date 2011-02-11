@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>email.backup</string>
+        <key>LowPriorityIO</key>
+        <true/>
+        <key>Program</key>
+        <string>/..path.to.your.user../Library/Scripts/email.backup</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>email.backup</string>
+        </array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StartInterval</key>
+	<integer>43200</integer>
+</dict>
+</plist>
