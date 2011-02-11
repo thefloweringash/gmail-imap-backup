@@ -130,11 +130,26 @@ module GmailBackup
 
         uidsleft = Array.new(uids)
 
+        # Write current status before we start processing
+        state_file.write({ UIDVALIDITY => remote_uidvalidity, UIDNEXT => remote_uidnext })
+        todo_file.write({ UIDS => uidsleft })
+ 
+        writefile = -1
+
         begin
           uids.each do |x| 
             Timeout::timeout(300) do
               fetch_and_store_message(x)
               uidsleft.delete(x)
+            end
+            
+            writefile = writefile - 1
+            if writefile < 0
+               writefile = 100
+               
+               # Every 100 items, update todo file
+               todo_file.write({ UIDS => uidsleft })
+               puts "Wrote status.todo.yml" if DEBUG
             end
           end
         rescue   Exception
@@ -142,6 +157,7 @@ module GmailBackup
           puts "Apparently something went wrong or we took more than 300 seconds for one single message ..."
         end
 
+        # This sometimes crashes, but in that case we'll just use the older todo file...
         state_file.write({ UIDVALIDITY => remote_uidvalidity, UIDNEXT => remote_uidnext })
         todo_file.write({ UIDS => uidsleft })
         puts "Wrote new status.yml and status.todo.yml" if DEBUG
