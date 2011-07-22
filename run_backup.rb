@@ -14,11 +14,8 @@ config_files.each do |config_file_name|
   raise "No destination" unless destination_root
 
   statepath = File.join(destination_root, 'state.')
-
   Lockfile.new statepath+'lock', :retries => 2 do
-    state_file = GmailBackup::YAMLFile.new(statepath+'yml')
-    todo_file = GmailBackup::YAMLFile.new(statepath+'todo.yml')
-    GmailBackup::IMAPBackup.new(config, state_file, todo_file).run
+    GmailBackup::IMAPBackup.new(config).run
   end
 
 end
