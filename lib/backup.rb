@@ -170,7 +170,10 @@ module GmailBackup
 
     def fetch_and_store_message(uid)
       puts "Fetch and store: #{uid}" if DEBUG
-      imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE']).each do |message|
+      messages = imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE'])
+      return unless messages
+      
+      messages.each do |message|
         dir = Maildir.new(File.join(destination_root, ".#{Date.today.to_s}"))
         internaldate = Time.parse(message.attr['INTERNALDATE'])
         file = dir.add(message.attr['RFC822']).path
