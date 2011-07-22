@@ -84,12 +84,17 @@ module GmailBackup
         authenticate
         
         mailboxes = imap.list(mailbox, "*")
-        puts "mailboxes: #{mailboxes}"
+        if mailboxes
+          mailboxes = mailboxes.collect{|m| m.name} 
+        else
+          mailboxes = [mailbox]
+        end
+        puts "mailboxes: #{mailboxes.to_yaml}"
 
         mailboxes.each do |curmailbox|
           puts "Current mailbox: #{curmailbox}"
           
-          @mailboxpath = File.join(destination_root, curmailbox.name)
+          @mailboxpath = File.join(destination_root, curmailbox)
           Dir.mkdir(mailboxpath) unless File.directory?(mailboxpath)
           statepath = File.join(mailboxpath, 'state.')
           
@@ -118,7 +123,7 @@ module GmailBackup
           raise "state.todo.yml corrupted" unless todo_uids
 
           
-          imap.examine(curmailbox.name)
+          imap.examine(curmailbox)
           numberofemail = imap.responses[EXISTS][-1].to_i
           puts "Number of EMails: #{numberofemail}"
           next unless numberofemail > 0
@@ -157,6 +162,7 @@ module GmailBackup
           todo_file.write({ UIDS => uidsleft })
  
           writefile = -1
+          abortloop = false
 
           begin
             uids.each do |x| 
@@ -177,12 +183,16 @@ module GmailBackup
           rescue   Exception
             puts $!, *$@
             puts "Apparently something went wrong or we took more than 300 seconds for one single message ..."
+            abortloop = true
           end
 
           # This sometimes crashes, but in that case we'll just use the older todo file...
           state_file.write({ UIDVALIDITY => remote_uidvalidity, UIDNEXT => remote_uidnext })
           todo_file.write({ UIDS => uidsleft })
           puts "Wrote new status.yml and status.todo.yml" if DEBUG
+        
+          break if abortloop
+          
         end
         
       ensure
