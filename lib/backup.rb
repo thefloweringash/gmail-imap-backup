@@ -16,7 +16,7 @@ module GmailBackup
   UIDS='UIDS'
   EXISTS='EXISTS'
 
-  DEBUG=true
+  DEBUG=false
 
   class IMAPBackup
     attr_reader :imap
@@ -25,6 +25,8 @@ module GmailBackup
     
 
     def initialize(config)
+      STDOUT.sync = true
+      
       @email = config['email']
       @consumer = GmailBackup::OAuth.consumer
 
@@ -89,10 +91,10 @@ module GmailBackup
         else
           mailboxes = [mailbox]
         end
-        puts "mailboxes: #{mailboxes.to_yaml}"
+        puts "\nMailboxes for #{email}: #{mailboxes.to_yaml}\n"
 
         mailboxes.each do |curmailbox|
-          puts "Current mailbox: #{curmailbox}"
+          puts "\n=== #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
           Dir.mkdir(mailboxpath) unless File.directory?(mailboxpath)
@@ -173,9 +175,9 @@ module GmailBackup
             
               writefile = writefile - 1
               if writefile < 0
-                 writefile = 100
+                 writefile = 1000
                
-                 # Every 100 items, update todo file
+                 # Every 1000 items, update todo file
                  todo_file.write({ UIDS => uidsleft })
                  puts "Wrote status.todo.yml" if DEBUG
               end
@@ -204,6 +206,8 @@ module GmailBackup
 
     def fetch_and_store_message(uid)
       puts "Fetch and store: #{uid}" if DEBUG
+      print "." if not DEBUG
+      
       messages = imap.uid_fetch(uid, ['RFC822', 'INTERNALDATE'])
       return unless messages
       
