@@ -96,7 +96,7 @@ module GmailBackup
         puts "\nMailboxes for #{email}: #{mailboxes.to_yaml}\n"
 
         mailboxes.each do |curmailbox|
-          puts "\n=== #{email} === #{curmailbox} ==="
+          puts "\n#{email}    === #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
           Dir.mkdir(mailboxpath) unless File.directory?(mailboxpath)
