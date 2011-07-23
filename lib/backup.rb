@@ -27,6 +27,8 @@ module GmailBackup
     def initialize(config)
       STDOUT.sync = true
       
+      @all_successfull = true
+      
       @email = config['email']
       @consumer = GmailBackup::OAuth.consumer
 
@@ -94,7 +96,7 @@ module GmailBackup
         puts "\nMailboxes for #{email}: #{mailboxes.to_yaml}\n"
 
         mailboxes.each do |curmailbox|
-          puts "\n=== #{curmailbox} ==="
+          puts "\n=== #{email} === #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
           Dir.mkdir(mailboxpath) unless File.directory?(mailboxpath)
@@ -176,6 +178,8 @@ module GmailBackup
               writefile = writefile - 1
               if writefile < 0
                  writefile = 1000
+                 
+                 print "(#{uidsleft.count})"
                
                  # Every 1000 items, update todo file
                  todo_file.write({ UIDS => uidsleft })
@@ -186,6 +190,7 @@ module GmailBackup
             puts $!, *$@
             puts "Apparently something went wrong or we took more than 300 seconds for one single message ..."
             abortloop = true
+            @all_successfull = false
           end
 
           # This sometimes crashes, but in that case we'll just use the older todo file...
@@ -199,6 +204,12 @@ module GmailBackup
         
       ensure
         cleanup
+      end
+      
+      if @all_successfull 
+        successpath = File.join(destination_root, 'success.txt')
+        File.open(successpath, 'w') {|f| f.write(DateTime.now.to_s) }
+        
       end
     end
 
