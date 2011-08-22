@@ -5,6 +5,7 @@ require 'lockfile'
 require 'timeout'
 require 'net/imap'
 require 'maildir'
+require 'mail'
 
 require File.join(File.dirname(__FILE__), 'oauth.rb')
 require File.join(File.dirname(__FILE__), 'yamlfile.rb')
@@ -212,6 +213,43 @@ module GmailBackup
         
       end
     end
+
+    def hashme(message_headers)
+      mail = Mail.new(message_headers)
+      from = mail.from || "NOFROM"
+      msgid = mail.message_id || "NOMSGID"
+      date = mail.date ? mail.date.ctime : "NOTIME"
+      return  "#{from}   #{msgid}   #{date}"
+    end
+
+    def get_hashes
+      begin
+        connect
+        authenticate
+        
+        Net::IMAP.debug= false
+        mailboxes = imap.list(mailbox, "*")
+        if mailboxes
+          mailboxes = mailboxes.collect{|m| m.name} 
+        else
+          mailboxes = [mailbox]
+        end
+        
+        mailboxes.each do |curmailbox|
+          imap.examine(curmailbox)
+          numberofemail = imap.responses[EXISTS][-1].to_i
+          next unless numberofemail > 0
+
+          messages = imap.fetch(1 .. -1, "(BODY.PEEK[HEADER.FIELDS (Date From Message-ID)])")
+          next unless messages
+          
+          messages.each { |x| puts hashme(x.attr["BODY[HEADER.FIELDS (Date From Message-ID)]"]) }
+        end
+      ensure
+        cleanup
+      end
+    end
+
 
     private
 
