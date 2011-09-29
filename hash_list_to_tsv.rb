@@ -12,8 +12,8 @@ else
       data = File.open(parts[0]) {|f| f.read}
       mail = Mail.new(data)
       add = ""
-      if mail["X-Uniform-Type-Identifier"] == "com.apple.mail-draft"
-        add = "DRAFT>"
+      if tmp=mail.header["X-Uniform-Type-Identifier"] and tmp.value == "com.apple.mail-draft"
+        add += "<#DRAFT#> "
       end
       puts "#{parts[0]}\t#{mail.from}\t#{add}#{mail.subject}"
     end
