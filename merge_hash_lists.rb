@@ -11,7 +11,7 @@ else
   (0..num_files-1).each do |fileindex|
     op = ARGV[fileindex*2 + 0]
     file = ARGV[fileindex*2 + 1]
-    puts "op: #{op} file: #{file}"
+    $stderr.puts "op: #{op} file: #{file}"
 
     add = (op == '-a' or op == '-add')
     File.open(file) do |infile|
