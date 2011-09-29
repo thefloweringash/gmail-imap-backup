@@ -4,3 +4,6 @@ config-fxtentacle.yml
 config-hajome.yml
 config-spratpix.yml
 hajome-hashes.txt
+dl-hajo-hashes.txt
+old-gmail-am-hashes.txt
+old-gmail-sent-hashes.txt
