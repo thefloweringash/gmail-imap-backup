@@ -31,6 +31,13 @@ The second column will later on contain the exit code, 0 meaning everything work
 Recovery
 ========
 
+Optional: Convert mbox to maildir
+---------------------------------
+
+If you have old backups stored in mbox format, you need to convert them to maildir.
+
+    ./split_mbox_to_directory.rb old-backup-file.mbox /new/maildir/directory
+
 Hash IMAP and Maildir mails
 ---------------------------
 
