@@ -249,6 +249,38 @@ module GmailBackup
     end
 
 
+
+    def upload_messages(target_mailbox, paths)
+      begin
+        connect
+        authenticate
+        
+        Net::IMAP.debug= false
+        mailboxes = imap.list(mailbox, "*")
+        if mailboxes
+          mailboxes = mailboxes.collect{|m| m.name} 
+        else
+          mailboxes = [mailbox]
+        end
+        
+        mailboxes.each do |curmailbox|
+          puts "curmailbox: #{curmailbox}"
+          next unless curmailbox == target_mailbox
+          puts "Found target Mailbox :)"
+          
+          paths.each do |file|
+            data = File.open(file) {|f| f.read}
+            mail = Mail.new(data)
+            puts "uploading #{file} size #{data.length} date #{mail.date}"
+            # imap.append(curmailbox, data, [:Seen], mail.date || Time.now)
+          end
+        end
+      ensure
+        cleanup
+      end
+    end
+
+
     private
 
     def fetch_and_store_message(uid)
