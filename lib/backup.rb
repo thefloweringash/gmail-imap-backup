@@ -230,6 +230,7 @@ module GmailBackup
         end
         
         mailboxes.each do |curmailbox|
+          $stderr.puts "curmailbox: #{curmailbox}"
           imap.examine(curmailbox)
           numberofemail = imap.responses[EXISTS][-1].to_i
           next unless numberofemail > 0
