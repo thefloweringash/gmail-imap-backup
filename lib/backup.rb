@@ -272,9 +272,16 @@ module GmailBackup
             data = File.open(file) {|f| f.read}
             mail = Mail.new(data)
             puts "uploading #{file} size #{data.length} date #{mail.date}"
-            # imap.append(curmailbox, data, [:Seen], mail.date || Time.now)
+            if mail.date
+              maildate = Time.mktime(mail.date.year, mail.date.month, mail.date.day, mail.date.hour, mail.date.min, mail.date.sec, mail.date.zone)
+            else
+              maildate = Time.now
+            end
+            imap.append(curmailbox, data, [:Seen], maildate )
           end
-        end
+        end        
+      rescue   Exception
+        puts $!, *$@
       ensure
         cleanup
       end
