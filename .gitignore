@@ -20,3 +20,8 @@ backup-oe-2004-hashes.txt
 hajo-scripts.txt
 missing-hashes-no-jboss.txt
 missing-hashes-tsv.txt
+missing-hashes-filtered.txt
+missing-hashes-filtered2.txt
+missing-hashes-filtered3.txt
+missing-hashes-filtered4.txt
+missing-hashes-filtered4.txt.failed.txt

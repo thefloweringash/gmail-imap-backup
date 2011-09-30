@@ -25,5 +25,10 @@ else
   config_file = GmailBackup::YAMLFile.new(config_file_name)
   config = config_file.read
 
-  GmailBackup::IMAPBackup.new(config).upload_messages(target_mailbox, paths)
+  File.open(hash_file_name + '.failed.txt','a') do |outfile|
+    while paths.count > 0
+      done = GmailBackup::IMAPBackup.new(config).upload_messages(target_mailbox, paths, outfile)
+      paths = paths - done
+    end
+  end
 end

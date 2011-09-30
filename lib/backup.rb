@@ -76,11 +76,14 @@ module GmailBackup
     end
 
     def cleanup
-      if imap
-        puts "Logging out" if DEBUG
-        Timeout::timeout(10) do
-          imap.logout
+      begin
+        if imap
+          puts "Logging out" if DEBUG
+          Timeout::timeout(10) do
+            imap.logout
+          end
         end
+      rescue Exception
       end
     end
 
@@ -250,7 +253,8 @@ module GmailBackup
 
 
 
-    def upload_messages(target_mailbox, paths)
+    def upload_messages(target_mailbox, paths, outfile)
+      done = []
       begin
         connect
         authenticate
@@ -277,7 +281,16 @@ module GmailBackup
             else
               maildate = Time.now
             end
-            imap.append(curmailbox, data, [:Seen], maildate )
+            
+            done <<= file
+            begin
+              imap.append(curmailbox, data, [:Seen], maildate )
+            rescue   Exception
+              puts $!, *$@
+              outfile.puts "#{file} #{mail.from} #{mail.subject}"
+              outfile.flush "#{file} #{mail.from} #{mail.subject}"
+              break
+            end
           end
         end        
       rescue   Exception
@@ -285,6 +298,7 @@ module GmailBackup
       ensure
         cleanup
       end
+      return done
     end
 
 
