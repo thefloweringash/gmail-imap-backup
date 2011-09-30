@@ -271,7 +271,7 @@ module GmailBackup
           puts "curmailbox: #{curmailbox}"
           next unless curmailbox == target_mailbox
           puts "Found target Mailbox :)"
-          
+
           paths.each do |file|
             data = File.open(file) {|f| f.read}
             mail = Mail.new(data)
@@ -281,14 +281,14 @@ module GmailBackup
             else
               maildate = Time.now
             end
-            
+
             done <<= file
             begin
               imap.append(curmailbox, data, [:Seen], maildate )
             rescue   Exception
               puts $!, *$@
-              outfile.puts "#{file} #{mail.from} #{mail.subject}"
-              outfile.flush "#{file} #{mail.from} #{mail.subject}"
+              outfile.puts "#{file}\t#{mail.from} #{mail.subject}"
+              outfile.flush
               break
             end
           end
