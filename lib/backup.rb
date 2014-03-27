@@ -62,7 +62,7 @@ module GmailBackup
     end
 
     def connect
-      @imap = Net::IMAP.new(imap_server ||"imap.gmail.com", 993, true, "/etc/ssl/certs", true)
+      @imap = Net::IMAP.new(imap_server ||"imap.gmail.com", 993, true, "/etc/ssl/certs/cacert.pem", true)
       puts "Connected" if DEBUG
     end
 
