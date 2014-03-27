@@ -132,7 +132,7 @@ module GmailBackup
           puts "\n#{email}    === #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
-          Dir.mkdir_p(mailboxpath) unless File.directory?(mailboxpath)
+          FileUtils.mkdir_p(mailboxpath) unless File.directory?(mailboxpath)
           statepath = File.join(mailboxpath, 'state.')
           
           state_file = GmailBackup::YAMLFile.new(statepath+'yml')
