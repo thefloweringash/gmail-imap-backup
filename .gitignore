@@ -26,3 +26,5 @@ missing-hashes-filtered3.txt
 missing-hashes-filtered4.txt
 missing-hashes-filtered4.txt.failed.txt
 missing-hashes-filtered5.txt
+/.ruby-version
+/service-account-key.p12
