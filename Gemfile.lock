@@ -26,15 +26,25 @@ GEM
       multi_json (>= 1.5)
     launchy (2.4.2)
       addressable (~> 2.3)
+    lockfile (2.1.0)
+    mail (2.5.4)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
+    maildir (2.1.0)
+    mime-types (1.25.1)
     multi_json (1.9.2)
     multipart-post (2.0.0)
     oauth (0.4.7)
+    polyglot (0.3.3)
     retriable (1.4.1)
     signet (0.5.0)
       addressable (>= 2.2.3)
       faraday (>= 0.9.0.rc5)
       jwt (>= 0.1.5)
       multi_json (>= 1.0.0)
+    treetop (1.4.15)
+      polyglot
+      polyglot (>= 0.3.1)
     uuidtools (2.1.4)
 
 PLATFORMS
@@ -43,4 +53,7 @@ PLATFORMS
 DEPENDENCIES
   gmail_xoauth
   google-api-client
+  lockfile
+  mail
+  maildir
   oauth

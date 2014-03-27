@@ -7,10 +7,12 @@ require 'net/imap'
 require 'maildir'
 require 'mail'
 
-require File.join(File.dirname(__FILE__), 'oauth.rb')
 require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 require File.join(File.dirname(__FILE__), 'emailhash.rb')
+
 require 'gmail_xoauth'
+#needs to come 2nd to overwrite XOAUTH 
+require File.join(File.dirname(__FILE__), 'oauth.rb')
 
 require 'google/api_client'
 
