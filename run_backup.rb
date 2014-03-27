@@ -12,6 +12,7 @@ config_files.each do |config_file_name|
 
   destination_root = config['destination_root']
   raise "No destination" unless destination_root
+  Dir.mkdir(destination_root) unless File.exists?(destination_root)
 
   statepath = File.join(destination_root, 'state.')
   Lockfile.new statepath+'lock', :retries => 2 do
