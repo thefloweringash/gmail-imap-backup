@@ -12,6 +12,8 @@ require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 require File.join(File.dirname(__FILE__), 'emailhash.rb')
 require 'gmail_xoauth'
 
+require 'google/api_client'
+
 module GmailBackup
   # typo protection
   UIDVALIDITY='UIDVALIDITY'
@@ -37,6 +39,23 @@ module GmailBackup
 
       if config['access_token'] == ''
         puts @consumer.to_yaml
+      if config['service_account_clientid']
+        client = Google::APIClient.new(
+          :application_name => 'Hajo EMail Backup',
+          :application_version => '1.0.0'
+        )
+
+        key = Google::APIClient::KeyUtils.load_from_pkcs12(config['service_account_key_file'], config['service_account_key_pass'])
+        client.authorization = Signet::OAuth2::Client.new(
+          :token_credential_uri => 'https://accounts.google.com/o/oauth2/token',
+          :audience => 'https://accounts.google.com/o/oauth2/token',
+          :scope => 'https://mail.google.com/',
+          :issuer => config['service_account_clientid'],
+          :person => email,
+          :signing_key => key)
+        client.authorization.fetch_access_token!
+        @access_token_v2 = client.authorization.access_token
+      end
 
         @request_token=@consumer.get_request_token( { :oauth_callback => "oob" }, {:scope => config['oauthscope'] || "https://mail.google.com/"} )
         puts "Please go to: " + @request_token.authorize_url
@@ -68,8 +87,10 @@ module GmailBackup
     end
 
     def authenticate
-      if access_token 
-        imap.authenticate('XOAUTH', email, consumer, access_token)
+      if access_token_v2 
+        imap.authenticate('XOAUTH2', email, access_token_v2)
+      elsif access_token 
+          imap.authenticate('XOAUTH', email, consumer, access_token)
       else
         imap.login(email, password)
       end
@@ -321,6 +342,7 @@ module GmailBackup
     end
 
     attr_reader :access_token, :consumer
+    attr_reader :access_token_v2
 
   end
 end
