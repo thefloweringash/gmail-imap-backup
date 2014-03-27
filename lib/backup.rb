@@ -79,6 +79,7 @@ module GmailBackup
       @mailbox = config['mailbox']
       @destination_root = config['destination_root']
       raise "No destination" unless @destination_root
+      Dir.mkdir(destination_root)
       
       @imap_server = config['imapserver'] 
       @password = config['password']
