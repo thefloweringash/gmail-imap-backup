@@ -6,6 +6,7 @@ require 'timeout'
 require 'net/imap'
 require 'maildir'
 require 'mail'
+require 'fileutils'
 
 require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 require File.join(File.dirname(__FILE__), 'emailhash.rb')
@@ -131,7 +132,7 @@ module GmailBackup
           puts "\n#{email}    === #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
-          Dir.mkdir(mailboxpath) unless File.directory?(mailboxpath)
+          Dir.mkdir_p(mailboxpath) unless File.directory?(mailboxpath)
           statepath = File.join(mailboxpath, 'state.')
           
           state_file = GmailBackup::YAMLFile.new(statepath+'yml')
