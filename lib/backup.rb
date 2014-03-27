@@ -10,6 +10,7 @@ require 'mail'
 require File.join(File.dirname(__FILE__), 'oauth.rb')
 require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 require File.join(File.dirname(__FILE__), 'emailhash.rb')
+require 'gmail_xoauth'
 
 module GmailBackup
   # typo protection
