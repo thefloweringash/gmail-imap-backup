@@ -37,8 +37,6 @@ module GmailBackup
       @email = config['email']
       @consumer = GmailBackup::OAuth.consumer
 
-      if config['access_token'] == ''
-        puts @consumer.to_yaml
       if config['service_account_clientid']
         client = Google::APIClient.new(
           :application_name => 'Hajo EMail Backup',
@@ -54,22 +52,26 @@ module GmailBackup
           :person => email,
           :signing_key => key)
         client.authorization.fetch_access_token!
-        @access_token_v2 = client.authorization.access_token
-      end
+        @access_token_v2 = client.authorization.access_token        
+      else
+        if config['access_token'] == ''
+          puts @consumer.to_yaml
 
-        @request_token=@consumer.get_request_token( { :oauth_callback => "oob" }, {:scope => config['oauthscope'] || "https://mail.google.com/"} )
-        puts "Please go to: " + @request_token.authorize_url
+          @request_token=@consumer.get_request_token( { :oauth_callback => "oob" }, {:scope => config['oauthscope'] || "https://mail.google.com/"} )
+          puts "Please go to: " + @request_token.authorize_url
 
-        puts "Please enter the verification code provided:"
-        oauth_verifier = STDIN.gets.chomp
+          puts "Please enter the verification code provided:"
+          oauth_verifier = STDIN.gets.chomp
 
-        @access_token=@request_token.get_access_token(:oauth_verifier => oauth_verifier)
-        puts "Add this to your config.yml:" + {'access_token'=>@access_token.token, 'access_token_secret'=>@access_token.secret}.to_yaml
+          @access_token=@request_token.get_access_token(:oauth_verifier => oauth_verifier)
+          puts "Add this to your config.yml:" + {'access_token'=>@access_token.token, 'access_token_secret'=>@access_token.secret}.to_yaml
 
-        exit
-      end
-      if config['access_token']
-        @access_token = ::OAuth::AccessToken.new(@consumer, config['access_token'], config['access_token_secret'])
+          exit
+        end
+      
+        if config['access_token']
+          @access_token = ::OAuth::AccessToken.new(@consumer, config['access_token'], config['access_token_secret'])
+        end
       end
       
       @mailbox = config['mailbox']
