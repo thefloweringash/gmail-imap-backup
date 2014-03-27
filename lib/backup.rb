@@ -280,6 +280,27 @@ module GmailBackup
     end
 
 
+    def list_mailboxes
+      begin
+        connect
+        authenticate
+        
+        mailboxes = imap.list('', "*")
+        if mailboxes
+          mailboxes = mailboxes.collect{|m| m.name} 
+        else
+          mailboxes = [mailbox]
+        end
+        
+        mailboxes.each do |curmailbox|
+          $stderr.puts "email #{email} mailbox: #{curmailbox}"
+        end
+      ensure
+        cleanup
+      end
+    end
+
+
 
     def upload_messages(target_mailbox, paths, outfile)
       done = []
