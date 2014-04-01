@@ -78,6 +78,7 @@ module GmailBackup
       end
       
       @mailbox = config['mailbox']
+      @mailbox_skip = config['mailbox_skip']
       @destination_root = config['destination_root']
       raise "No destination" unless @destination_root
       Dir.mkdir(destination_root) unless File.exists?(destination_root)
@@ -129,6 +130,7 @@ module GmailBackup
         puts "\nMailboxes for #{email}: #{mailboxes.to_yaml}\n"
 
         mailboxes.each do |curmailbox|
+          next if (@mailbox_skip && @mailbox_skip.include?(curmailbox) )
           puts "\n#{email}    === #{curmailbox} ==="
           
           @mailboxpath = File.join(destination_root, curmailbox)
