@@ -16,7 +16,7 @@ config_files.each do |config_file_name|
 
   statepath = File.join(destination_root, 'state.')
   Lockfile.new statepath+'lock', :retries => 2 do
-    GmailBackup::IMAPBackup.new(config).run
+    GmailBackup::IMAPBackup.new(config).list_mailboxes
   end
 
 end

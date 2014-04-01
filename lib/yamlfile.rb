@@ -13,7 +13,8 @@ module GmailBackup
     end
 
     def write(o)
-      File.open(filename, "w") { |f| f.puts o.to_yaml }
+      str = o.to_yaml
+      File.open(filename, "w") { |f| f.puts str }
     end
 
     def exists

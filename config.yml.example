@@ -1,0 +1,6 @@
+--- 
+email: example@googlemail.com
+access_token_secret: ''
+access_token: ''
+mailbox: 'All Mail'
+destination_root: ./output

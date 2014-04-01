@@ -1,0 +1,25 @@
+#!/bin/bash
+
+runFromFolder="/..path.to.git.repository../gmail-imap-backup"
+backupVolume="/Volumes/Hajo\ Backups"
+
+
+# This sleep timer has been added to allow enough
+# time for the system to mount the external drive
+# On my PowerBook 30 sec. is more than enough time
+
+sleep 30
+
+# This check is added to test for cases when we are
+# removing a drive from /Volumes or if the drive failed
+# to mount in the first place
+
+if [ ! -e "${backupVolume}" ] 
+then
+exit 0
+fi
+
+cd "${runFromFolder}"
+nice ./run_backup.rb
+
+exit 0
