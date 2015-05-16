@@ -1,14 +1,30 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.3.8)
+    extlib (0.9.16)
+    faraday (0.9.1)
+      multipart-post (>= 1.2, < 3)
+    gmail_xoauth (0.4.1)
+      oauth (>= 0.3.6)
+    jwt (1.5.0)
     lockfile (2.1.3)
     maildir (2.2.1)
+    multi_json (1.11.0)
+    multipart-post (2.0.0)
     oauth (0.4.7)
+    signet (0.6.0)
+      addressable (~> 2.3)
+      extlib (~> 0.9)
+      faraday (~> 0.9)
+      jwt (~> 1.0)
+      multi_json (~> 1.10)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  gmail_xoauth
   lockfile
   maildir
-  oauth
+  signet

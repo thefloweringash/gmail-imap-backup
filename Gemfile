@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
-gem "oauth"
+gem "gmail_xoauth"
 gem "lockfile"
 gem "maildir"
+gem "signet"

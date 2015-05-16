@@ -5,8 +5,9 @@ require 'lockfile'
 require 'timeout'
 require 'net/imap'
 require 'maildir'
+require 'signet/oauth_2/client'
+require 'gmail_xoauth'
 
-require File.join(File.dirname(__FILE__), 'oauth.rb')
 require File.join(File.dirname(__FILE__), 'yamlfile.rb')
 
 module GmailBackup
@@ -27,10 +28,9 @@ module GmailBackup
       config = config_file.read
 
       @email = config['email']
-      @consumer = GmailBackup::OAuth.consumer
-      @access_token = ::OAuth::AccessToken.new(@consumer,
-                                               config['access_token'],
-                                               config['access_token_secret'])
+      @client_id = config['client_id']
+      @client_secret = config['client_secret']
+      @refresh_token = config['refresh_token']
       @mailbox = config['mailbox']
       @destination_root = config['destination_root']
       raise "No destination" unless @destination_root
@@ -49,13 +49,22 @@ module GmailBackup
       end
     end
 
+    def new_access_token!
+      Signet::OAuth2::Client.new(
+        :token_credential_uri => "https://www.googleapis.com/oauth2/v3/token",
+        :client_id => @client_id,
+        :client_secret => @client_secret,
+        :refresh_token => @refresh_token,
+      ).fetch_access_token["access_token"]
+    end
+
     def connect
       @imap = Net::IMAP.new("imap.gmail.com", 993, true, "/etc/ssl/certs", true)
       puts "Connected" if DEBUG
     end
 
-    def authenticate
-      imap.authenticate('XOAUTH', email, consumer, access_token)
+    def authenticate(access_token)
+      imap.authenticate('XOAUTH2', email, access_token)
       puts "Authenticated" if DEBUG
     end
 
@@ -70,8 +79,9 @@ module GmailBackup
 
     def run
       begin
+        access_token = new_access_token!
         connect
-        authenticate
+        authenticate(access_token)
 
         imap.examine(mailbox)
 
@@ -120,8 +130,5 @@ module GmailBackup
         File.utime(File.atime(file), internaldate, file)
       end
     end
-
-    attr_reader :access_token, :consumer
-
   end
 end
