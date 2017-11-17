@@ -72,6 +72,8 @@ We'll assume that you now have a list of all the mails you want to recover in re
 Contact
 =======
 
-Hajo Nils Krabbenhöft
+This script is provided as-is and is meant for other computer programmers to use. Please *do not* call / chat / email me with end-user usage questions.
 
-fxtentacle at googlemail dot com
+If you have found a bug or have a code improvement, please open a GitHub issue or (even better) submit a pull request.
+
+
